@@ -28,7 +28,7 @@ public class MeleeController : AttackController
         foreach (Collider other in others)
         {
             HealthController controller = other.GetComponent<HealthController>();
-            if (controller == null )
+            if (controller == null)
             {
                 continue;
             }

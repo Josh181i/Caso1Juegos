@@ -1,53 +1,36 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField]
-    float moveSpeed;
+    public GameObject restartButton;
+    public GameObject gameOverScreen;
+    public Image healthBarImage1; 
 
-    [SerializeField]
-    float rotationSpeed;
-
-    [SerializeField]
-    float jumpForce;
-
-    [SerializeField]
-    float gravityMultiplier;
-
-    [SerializeField]
-    Transform groundCheck;
-
-    [SerializeField]
-    LayerMask whatIsWalkable;
+    [SerializeField] float moveSpeed;
+    [SerializeField] float rotationSpeed;
+    [SerializeField] float jumpForce;
+    [SerializeField] float gravityMultiplier;
+    [SerializeField] Transform groundCheck;
+    [SerializeField] LayerMask whatIsWalkable;
 
     float _inputX;
     float _inputZ;
-
     float _gravityY;
     float _velocityY;
-
     bool _isJumpPressed;
     bool _isGrounded;
 
-    //Rigidbody _rigidbody;
-
     CharacterController _characterController;
-
     Camera _mainCamera;
-
     Vector3 _direction;
 
     private void Awake()
     {
-        //_rigidbody = GetComponent<Rigidbody>();
         _characterController = GetComponent<CharacterController>();
         _mainCamera = Camera.main;
-
         _gravityY = Physics.gravity.y;
     }
 
@@ -58,17 +41,33 @@ public class PlayerController : MonoBehaviour
         {
             StartCoroutine(WaitForGroundedCoroutine());
         }
+
+        // Ocultar el botón de reinicio y la pantalla de Game Over al inicio del juego
+        if (restartButton != null)
+        {
+            restartButton.SetActive(false);
+        }
+        if (gameOverScreen != null)
+        {
+            gameOverScreen.SetActive(false);
+        }
     }
 
     private void Update()
     {
         HandleGravity();
         HandleMovement();
+
+        // Si el jugador está en el aire y se cae fuera de los límites de la pantalla
+        if (!_isGrounded && transform.position.y < -10f)
+        {
+            Die();
+        }
     }
 
     private void HandleGravity()
     {
-        if (_isGrounded) 
+        if (_isGrounded)
         {
             if (_velocityY < -1.0F)
             {
@@ -111,19 +110,6 @@ public class PlayerController : MonoBehaviour
 
     private void Move()
     {
-        //if (!IsMove())
-        //{
-        //    return;
-        //}
-
-        //Vector3 velocity = _rigidbody.velocity;
-        //Vector3 direction = new Vector3(_inputX, velocity.y, _inputZ);
-
-        //direction.Normalize();
-        //_rigidbody.MovePosition(_rigidbody.position + direction * moveSpeed * Time.fixedDeltaTime);
-
-        //transform.forward = direction;
-
         _direction.y = _velocityY;
         _characterController.Move(_direction * moveSpeed * Time.fixedDeltaTime);
     }
@@ -136,34 +122,20 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        _direction = Quaternion.Euler(0.0F, _mainCamera.transform.eulerAngles.y, 0.0F)
-            * new Vector3(_inputX, 0.0F, _inputZ);
+        _direction = Quaternion.Euler(0.0F, _mainCamera.transform.eulerAngles.y, 0.0F) * new Vector3(_inputX, 0.0F, _inputZ);
         Quaternion targetRotation = Quaternion.LookRotation(_direction, Vector3.up);
-        transform.rotation =
-            Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
+        transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.fixedDeltaTime);
     }
 
     private void Jump()
     {
         _velocityY = jumpForce;
-
         _isGrounded = false;
         StartCoroutine(WaitForGroundedCoroutine());
-
-        //if (_isJumpPressed && _isGrounded)
-        //{
-        //    //_rigidbody.AddForce
-        //    //    (Vector3.up * jumpForce, ForceMode.Impulse);
-
-        //    _isGrounded = false;
-        //    StartCoroutine(WaitForGroundedCoroutine());
-        //}
     }
 
     private bool IsGrounded()
     {
-        //return Physics.Raycast(groundCheck.position, Vector3.down, 0.65F, whatIsWalkable);
-
         return _characterController.isGrounded;
     }
 
@@ -172,5 +144,46 @@ public class PlayerController : MonoBehaviour
         yield return new WaitUntil(() => !IsGrounded());
         yield return new WaitUntil(() => IsGrounded());
         _isGrounded = true;
+    }
+
+    // Método para manejar la muerte del jugador
+    private void Die()
+    {
+        Debug.Log("Player has died.");
+
+        // Detener el tiempo
+        Time.timeScale = 0f;
+
+        // Mostrar el Game Over
+        if (gameOverScreen != null)
+        {
+            gameOverScreen.SetActive(true);
+        }
+
+        // Mostrar el botón de reinicio
+        if (restartButton != null)
+        {
+            restartButton.SetActive(true);
+        }
+    }
+
+    // Método para reiniciar la partida
+    public void RestartGame()
+    {
+        // Reanudar el tiempo
+        Time.timeScale = 1f;
+
+        // Colocar al jugador de nuevo en la posición inicial
+        transform.position = Vector3.zero;
+
+        // Desactivar el botón de reinicio y la pantalla de Game Over
+        if (restartButton != null)
+        {
+            restartButton.SetActive(false);
+        }
+        if (gameOverScreen != null)
+        {
+            gameOverScreen.SetActive(false);
+        }
     }
 }

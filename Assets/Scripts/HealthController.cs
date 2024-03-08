@@ -1,34 +1,107 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
-// Implementar sistema de salud al jugador 30 PUNTOS
-// * Agentes dañan 5
-// * Los objetos que obsilantes dañan 15
-// * Pierden la vida reinician la escena 20 PUNTOS
 public class HealthController : MonoBehaviour
 {
-    [SerializeField]
-    float maxHealth = 100.00F;
-
-    float _currentHealth;
+    [SerializeField] public float totalHealth = 100;
+    public float currentHealth;
+    public Image healthBarImage1; 
+    public Image healthBarImage2; 
+    public Text gameOverText; 
 
     private void Awake()
     {
-        _currentHealth = maxHealth;
+        currentHealth = totalHealth;
+        UpdateHealthBar();
+        HideGameOverText(); 
+    }
+
+    void Update()
+    {
+        if (Input.GetKeyUp(KeyCode.I))
+        {
+            TakeDamage(25f);
+        }
     }
 
     public void TakeDamage(float damage)
     {
-        _currentHealth -= Mathf.Abs(damage);
-        if (_currentHealth <= 0.0F ) 
+        currentHealth -= damage;
+        if (currentHealth <= 0)
         {
-            Destroy(gameObject);
+            currentHealth = 0;
+            Die(); 
+        }
+        UpdateHealthBar();
+    }
+
+    void UpdateHealthBar()
+    {
+        if (gameObject.CompareTag("Player"))
+        {
+            if (healthBarImage1 != null && healthBarImage2 != null)
+            {
+                float healthRatio = currentHealth / totalHealth;
+                healthBarImage1.fillAmount = healthRatio;
+
+               
+                
+                healthBarImage2.fillAmount = 1 - healthRatio;
+            }
+            else
+            {
+                Debug.LogWarning("Una de las imágenes de la barra de vida no ha sido asignada en el Inspector.");
+            }
+        }
+        else
+        {
+            if (healthBarImage1 != null)
+            {
+                float healthRatio = currentHealth / totalHealth;
+                healthBarImage1.fillAmount = healthRatio;
+            }
+            else
+            {
+                Debug.LogWarning("La imagen de la barra de vida no ha sido asignada en el Inspector para el enemigo.");
+            }
         }
     }
 
-    public void Heal(float repair)
+    void Die()
     {
-        _currentHealth += Mathf.Abs(repair);
+        
+        Debug.Log("El jugador ha muerto");
+        if (gameObject.CompareTag("Player"))
+        {
+            ShowGameOverText();
+            Invoke("RestartLevel", 3f); 
+        }
+        else
+        {
+            
+            gameObject.SetActive(false);
+        }
+    }
+
+    void RestartLevel()
+    {
+       
+        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+    }
+
+    void ShowGameOverText()
+    {
+        if (gameOverText != null)
+        {
+            gameOverText.gameObject.SetActive(true);
+        }
+    }
+
+    void HideGameOverText()
+    {
+        if (gameOverText != null)
+        {
+            gameOverText.gameObject.SetActive(false);
+        }
     }
 }

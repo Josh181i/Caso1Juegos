@@ -2,8 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// Segunda Arma 25 PUNTOS
-// * Animacion por rotación
 
 public class WeaponController : MonoBehaviour
 {
@@ -22,11 +20,11 @@ public class WeaponController : MonoBehaviour
 
     private void Update()
     {
-        HandleScrollWheel();
+        HandleScroolWheel();
         HandleAttack();
     }
 
-    private void HandleScrollWheel()
+    private void HandleScroolWheel()
     {
         float scrollWheel = Input.GetAxis("Mouse ScrollWheel");
         if (scrollWheel != 0.0F)
@@ -35,7 +33,7 @@ public class WeaponController : MonoBehaviour
                 ? _selectedWeapon + 1
                 : _selectedWeapon - 1;
 
-            if (_selectedWeapon >= weapons.Length) 
+            if (_selectedWeapon >= weapons.Length)
             {
                 _selectedWeapon = 0;
             }
@@ -58,7 +56,7 @@ public class WeaponController : MonoBehaviour
 
     private void SelectWeapon()
     {
-        for(int index = 0; index < weapons.Length; index++) 
+        for (int index = 0; index < weapons.Length; index++)
         {
             AttackController controller = weapons[index];
             bool isActive = (_selectedWeapon == index);
